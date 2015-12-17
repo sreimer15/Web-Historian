@@ -1,6 +1,8 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var http = require('http');
+
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -16,7 +18,7 @@ exports.paths = {
 };
 
 // Used for stubbing paths for tests, do not modify
-exports.initialize = function(pathsObj){
+exports.initialize = function(pathsObj) {
   _.each(pathsObj, function(path, type) {
     exports.paths[type] = path;
   });
@@ -25,17 +27,79 @@ exports.initialize = function(pathsObj){
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function(){
+exports.readListOfUrls = function(cb) {
+  fs.readFile(exports.paths.list, 'utf8', function(err, data) {
+    if (err) throw err;
+    var dataArray = data.split('\n');
+    cb(dataArray);
+  });
+
 };
 
-exports.isUrlInList = function(){
+exports.isUrlInList = function(url, cb) {
+  exports.readListOfUrls(function(dataArray) {
+    cb(!!(dataArray.indexOf(url) + 1));
+    // archive.isUrlInList("example1.com", cb (is =(true or false)) {
+    //       expect(!!(dataArray.indexOf(url) + 1));
+    //       if (++counter == total) { done() }
+    //     });
+    //
+  });
 };
 
-exports.addUrlToList = function(){
+exports.addUrlToList = function(url, cb) {
+  // archive.addUrlToList("someurl.com", function () {
+  //       archive.isUrlInList("someurl.com", function (is) {
+  //         expect(is);
+  //         done();
+  //       });
+  exports.isUrlInList(url, function(doesExist) {
+    if (!doesExist) {
+      //fs.appendFile(file, data[, options], callback)
+      fs.appendFile(exports.paths.list, '\n' + url, 'utf8', cb);
+    }
+  });
 };
 
-exports.isUrlArchived = function(){
+exports.isUrlArchived = function(url, cb) {
+  // archive.isUrlArchived("www.example.com", function (exists) {
+  //       expect(exists);
+  //       if (++counter == total) { done() }
+  //     });
+  fs.readFile(exports.paths.archivedSites + '/' + url, 'utf8', function(err, data) {
+    cb(!err);
+  });
+
 };
 
-exports.downloadUrls = function(){
+exports.downloadUrls = function(urlArray) {
+
+  //Read the contents of sites.txt
+  // exports.readListOfUrls(function(dataArray){
+  urlArray.forEach(function(url) { //iterates through site.txt
+    exports.isUrlArchived(url, function(isArchived) {
+      if (!isArchived) {
+        console.log('File not found for ', url, 'Downloading...');
+        var req = http.request('http://' + url, function(response) {
+            response.setEncoding('utf8');
+            var data = '';
+            response.on('data', function(chunk) {
+              data+= chunk;
+            });
+            response.on('end', function() {
+              fs.writeFile(exports.paths.archivedSites + '/' + url , data, 'utf8', function(err){
+                console.log(err);
+              });
+              console.log('Downloaded site HTML for', url);
+            });
+          });
+          req.end();
+      }
+    });
+  });
+  //  var urlPart = url.parse(request.url);
+  // });
+  //'parse' it into an array
+  //iterate through array
+  //if that element is not archived, then <SOMEHOW DOWNLOAD HTML TO THAT FILE>
 };
