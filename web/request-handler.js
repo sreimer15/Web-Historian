@@ -1,7 +1,8 @@
 var path = require('path');
-var archive = require('../helpers/archive-helpers');
+var httpHelpers = require('./http-helpers.js');
 var url = require('url');
-
+var archive = require('../helpers/archive-helpers');
+var fs = require('fs');
 // require more modules/folders here!
 
 exports.handleRequest = function (req, res) {
@@ -10,9 +11,37 @@ exports.handleRequest = function (req, res) {
   // writefile.path have the 
 
   //for a GET request
-    //response is a site's HTML
+  if(req.method === 'GET') {
+    //check if the url is empty
+    if (req.url === '/'){
+      httpHelpers.serveAssets(res, 'index');
+    }
+    else {
+
+      fs.readFile(archive.paths.archivedSites + '/' + req.url,  'utf8', function(err,data){
+        if(err){ //127.0.0.1:8080/253463fdgfg
+          res.writeHead(404,httpHelpers.headers);
+          res.end();
+          return;
+        }
+        httpHelpers.serveAssets(res, req.url);
+      });
+      //fs.readfile on the url
+      //on err, send a 404
+      //otherwise call this function vvvv
+    }
+  }
+
+  
   //for a POST request
-    //check if the site's HTML is already archived
-      //if not, create a cached version of that site's HTML
-  res.end(archive.paths.list);
+  if(req.method === 'POST') {
+    var data = '';
+    req.on('data', function(chunk) {
+      data += chunk;
+    });
+    req.on('end', function() {
+      data = data.substring(4);
+      httpHelpers.serveAssets(res, data, 302);
+    })
+  }
 };

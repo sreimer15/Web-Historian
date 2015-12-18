@@ -1,6 +1,13 @@
 var http = require("http");
 var handler = require("./request-handler");
 var initialize = require("./initialize.js");
+var htmlfetcher = require('../workers/htmlfetcher.js')
+
+var CronJob = require('cron').CronJob;
+new CronJob('00 * * * * *', function() {
+  console.log('Downloading new URLs');
+  htmlfetcher();
+}, null, true, 'America/Los_Angeles');
 
 // Why do you think we have this here?
 // HINT: It has to do with what's in .gitignore

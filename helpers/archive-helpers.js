@@ -90,16 +90,11 @@ exports.downloadUrls = function(urlArray) {
               fs.writeFile(exports.paths.archivedSites + '/' + url , data, 'utf8', function(err){
                 console.log(err);
               });
-              console.log('Downloaded site HTML for', url);
+              console.log('Downloaded site HTML for:', url);
             });
           });
           req.end();
       }
     });
   });
-  //  var urlPart = url.parse(request.url);
-  // });
-  //'parse' it into an array
-  //iterate through array
-  //if that element is not archived, then <SOMEHOW DOWNLOAD HTML TO THAT FILE>
 };

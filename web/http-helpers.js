@@ -11,10 +11,37 @@ exports.headers = headers = {
   'Content-Type': "text/html"
 };
 
-exports.serveAssets = function(res, asset, callback) {
+exports.serveAssets = function(res, asset, statusCode) {
   // Write some code here that helps serve up your static files!
   // (Static files are things like html (yours or archived from others...),
   // css, or anything that doesn't change often.)
+
+  var statusCode = statusCode || 200;
+  res.writeHead(statusCode, headers);
+
+  var filePath = '';
+  if (asset === 'index') { //GET
+    filePath = archive.paths.siteAssets + '/index.html';
+  }
+  else {
+    filePath = archive.paths.archivedSites + '/' + asset;
+  }
+
+//Post
+
+  fs.readFile(filePath, 'utf8', function(err, data) {
+    if (err) {
+      archive.addUrlToList(asset);
+      fs.readFile(archive.paths.siteAssets + '/loading.html', 'utf8', function(err, data) {
+        res.write(data);
+        res.end();
+      });
+    } else {
+      res.write(data);
+      res.end();
+    }
+  });
+
 };
 
 
